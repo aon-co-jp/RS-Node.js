@@ -11,3 +11,7 @@
 **Planned (open, continued automatically in this order)**: (1) readFileSync returning a Buffer, (2) util.inspect and Node-compatible console.log formatting, (3) node_modules resolution and package.json main, (4) ESM (import/export), (5) streams and http (using our Rust server components), (6) swapping in our own RS-JavaScript engine.
 **Rules**: say "done" only after checking on a real system; never drop unsupported items silently, always flag them; keep secrets out; no new REST (Connect only).
 
+
+### 追記 (2026-11-20) / Update
+**日本語**: `fs.readFileSync` / `fs.readFile` / `fs.promises.readFile` が、文字コード指定なしのとき本物の Node と同じく Buffer を返すようになった(`tests/compat/g.js` で一致確認)。完成予定の①は完了。残り: util.inspect と console.log の整形、node_modules 解決、ESM、stream・http、RS-JavaScript への差し替え。
+**English**: `fs.readFileSync`, `fs.readFile` and `fs.promises.readFile` now return a Buffer when no encoding is given, like real Node (verified with `tests/compat/g.js`). Planned item 1 is done. Remaining: util.inspect and console.log formatting, node_modules resolution, ESM, streams and http, swapping in RS-JavaScript.
