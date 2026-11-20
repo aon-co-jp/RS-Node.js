@@ -118,9 +118,9 @@ Regras: só dizer «concluído» depois de verificar em um sistema real; nunca d
 
 **الحالة الحالية (تم التحقق منها)**: بيئة تشغيل بلغة Rust تستهدف التوافق مع Node.js: يعمل JavaScript على محرك Rust المسمى Boa، ويعمل TypeScript عبر RS-TypeScript. تدعم console وprocess (مع exit) وrequire (path وfs المتزامن وغير المتزامن وfs/promises وevents وutil وos وbuffer والبادئة node:) وsetTimeout / setInterval / setImmediate / queueMicrotask / nextTick وBuffer. تعطي اختبارات المقارنة المخرجات نفسها التي يعطيها Node الحقيقي (v26.5.0).
 
-**المخطط (غير مكتمل، يُتابَع تلقائيًا بهذا الترتيب)**: تنسيق util.inspect وconsole.log، وحلّ node_modules، وESM، وstream وhttp، والتحوّل إلى محركنا الخاص RS-JavaScript.
+**المخطَّط له (غير مكتمل، يُتابَع تلقائيًا بهذا الترتيب)**: تنسيق util.inspect وconsole.log، وتحليل مسارات node_modules، وESM، وstream وhttp، والتحوّل إلى محركنا الخاص RS-JavaScript.
 
-المبادئ: لا نكتب «تم» إلا بعد التحقق على نظام حقيقي؛ لا نُسقِط ما لا يُدعَم بصمت بل نُعلِّمه بوضوح؛ لا نكتب أسرارًا؛ لا نضيف واجهات REST جديدة (Connect فقط).
+المبادئ: لا نكتب «تم» إلا بعد التحقق على نظام حقيقي؛ لا نُسقِط ما لا يُدعَم بصمت بل نضع عليه علامة واضحة؛ لا نكتب أسرارًا؛ لا نضيف واجهات REST جديدة (Connect فقط).
 
 </div>
 
@@ -128,11 +128,11 @@ Regras: só dizer «concluído» depois de verificar em um sistema real; nunca d
 
 <div dir="rtl" lang="fa">
 
-*متن زیر را هوش مصنوعی ترجمه و از نظر روانی زبان بازبینی کرده است؛ هنوز فارسی‌زبانی بومی و انسانی آن را بررسی نکرده است.*
+*متن زیر را هوش مصنوعی ترجمه و از نظر روانی زبان بازبینی کرده است؛ هنوز هیچ فارسی‌زبانِ بومیِ انسانی آن را بررسی نکرده است.*
 
 **وضعیت کنونی (بررسی‌شده)**: محیط اجرای Rust با هدف سازگاری با Node.js: JavaScript روی موتور Rust به نام Boa و TypeScript از راه RS-TypeScript اجرا می‌شود. از console، process (همراه exit)، require (path، fs همگام و ناهمگام، fs/promises، events، util، os، buffer، پیشوند node:)، setTimeout / setInterval / setImmediate / queueMicrotask / nextTick و Buffer پشتیبانی می‌کند. آزمون‌های مقایسه‌ای همان خروجی Node واقعی (v26.5.0) را می‌دهند.
 
-**برنامه‌ریزی‌شده (ناتمام؛ به‌صورت خودکار و با همین ترتیب ادامه می‌یابد)**: قالب‌بندی util.inspect و console.log، یافتن node_modules، ESM، stream و http و جایگزینی با موتور خودمان RS-JavaScript.
+**برنامه‌ریزی‌شده (ناتمام؛ به‌صورت خودکار و با همین ترتیب ادامه می‌یابد)**: قالب‌بندی util.inspect و console.log، یافتن ماژول‌ها در node_modules، ESM، stream و http و جایگزینی با موتور خودمان RS-JavaScript.
 
 اصول: فقط پس از بررسی روی یک سامانهٔ واقعی می‌نویسیم «انجام شد»؛ آنچه پشتیبانی نمی‌شود هرگز بی‌صدا حذف نمی‌شود و آشکارا علامت می‌خورد؛ رازی (مانند گذرواژه و کلید) نمی‌نویسیم؛ REST جدید نمی‌سازیم (فقط Connect).
 
