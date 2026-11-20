@@ -18,7 +18,7 @@ pub const PRELUDE: &str = r#"
   var fmt = function (a) { return typeof a === 'string' ? a : (a && typeof a === 'object' ? JSON.stringify(a) : String(a)); };
   g.console = { log: function () { __print(Array.prototype.map.call(arguments, fmt).join(' ')); } };
   g.console.error = g.console.warn = g.console.info = g.console.log;
-  g.process = { argv: __argv(), env: new Proxy({}, { get: function (_, k) { return __env(String(k)); } }), cwd: function () { return __cwd(); }, platform: 'rnodejs' };
+  g.process = { argv: __argv(), env: new Proxy({}, { get: function (_, k) { return __env(String(k)); } }), cwd: function () { return __cwd(); }, exit: function (c) { __exit(c === undefined ? (g.process.exitCode | 0) : (c | 0)); }, platform: 'rnodejs' };
   var path = {
     sep: '/',
     normalize: function (p) {
@@ -155,6 +155,12 @@ mod boa_backend {
             }))?;
             reg(&mut ctx, js_string!("__entry"), NativeFunction::from_fn_ptr(|_, _, _| Ok(JsValue::from(boa_engine::JsString::from(super::ENTRY.with(|e| e.borrow().1.clone()).as_str())))))?;
             reg(&mut ctx, js_string!("__entry_file"), NativeFunction::from_fn_ptr(|_, _, _| Ok(JsValue::from(boa_engine::JsString::from(super::ENTRY.with(|e| e.borrow().0.clone()).as_str())))))?;
+            reg(&mut ctx, js_string!("__exit"), NativeFunction::from_fn_ptr(|_, a, c| {
+                use std::io::Write;
+                let code = a.first().cloned().unwrap_or(JsValue::undefined()).to_number(c)?;
+                let _ = std::io::stdout().flush();
+                std::process::exit(code as i32)
+            }))?;
             reg(&mut ctx, js_string!("__sleep"), NativeFunction::from_fn_ptr(|_, a, c| {
                 let ms = a.first().cloned().unwrap_or(JsValue::undefined()).to_number(c)?;
                 std::thread::sleep(std::time::Duration::from_millis(ms.max(0.0) as u64));
