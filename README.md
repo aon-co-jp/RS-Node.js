@@ -233,7 +233,7 @@ Apache-2.0 OR MIT
 ## 多言語: 現状と完成予定 / Status and plan in 10 languages (ja, en above)
 
 ### 简体中文 — 现状与计划 (2026-11-20)
-*以下为 AI 翻译,尚未经母语者校对。*
+*以下为 AI 翻译,并已由 AI 按母语水平审校;尚未经人类母语者校对。*
 
 **现状(已验证)**: 面向 Node.js 兼容的 Rust 运行时:JavaScript 由 Rust 引擎 Boa 运行,TypeScript 通过 RS-TypeScript 运行。支持 console、process(含 exit)、require(path、同步/异步 fs、fs/promises、events、util、os、buffer、node: 前缀)、setTimeout / setInterval / setImmediate / queueMicrotask / nextTick 和 Buffer。对比测试的输出与真实 Node(v26.5.0)一致。
 
@@ -242,7 +242,7 @@ Apache-2.0 OR MIT
 原则:先在真实环境确认再说“完成”;不支持的内容绝不悄悄丢弃,而是明确标出;不写入机密;不新增 REST(仅 Connect)。
 
 ### 繁體中文(台灣) — 現況與計畫 (2026-11-20)
-*以下為 AI 翻譯,尚未經母語者校對。*
+*以下為 AI 翻譯,並已由 AI 以母語水準審校;尚未經人類母語者校對。*
 
 **現況(已驗證)**: 以 Node.js 相容為目標的 Rust 執行環境:JavaScript 由 Rust 引擎 Boa 執行,TypeScript 透過 RS-TypeScript 執行。支援 console、process(含 exit)、require(path、同步/非同步 fs、fs/promises、events、util、os、buffer、node: 前綴)、setTimeout / setInterval / setImmediate / queueMicrotask / nextTick 與 Buffer。比對測試的輸出與真實 Node(v26.5.0)一致。
 
@@ -251,7 +251,7 @@ Apache-2.0 OR MIT
 原則:先在真實環境確認才說「完成」;不支援的內容絕不悄悄丟棄,而是明確標出;不寫入機密;不新增 REST(僅 Connect)。
 
 ### 한국어 — 현황과 계획 (2026-11-20)
-*아래는 AI 번역이며 원어민 검수 전입니다.*
+*아래는 AI가 번역하고 AI가 원어민 수준으로 검수한 것이며, 사람 원어민의 검수는 아직 받지 않았습니다.*
 
 **현황(검증 완료)**: Node.js 호환을 목표로 하는 Rust 런타임입니다. JavaScript는 Rust 엔진 Boa로, TypeScript는 RS-TypeScript로 실행합니다. console, process(exit 포함), require(path, 동기/비동기 fs, fs/promises, events, util, os, buffer, node: 접두사), setTimeout / setInterval / setImmediate / queueMicrotask / nextTick, Buffer를 지원합니다. 비교 시험의 출력이 실제 Node(v26.5.0)와 같습니다.
 
@@ -260,7 +260,7 @@ Apache-2.0 OR MIT
 원칙: 실제 환경에서 확인한 뒤에만 "완료"라고 씁니다. 지원하지 않는 항목은 조용히 버리지 않고 명확히 표시합니다. 비밀 정보는 쓰지 않으며 새 REST는 만들지 않습니다(Connect만).
 
 ### Deutsch — Stand und Plan (2026-11-20)
-*Die folgenden Texte sind KI-Übersetzungen und noch nicht von Muttersprachlern geprüft.*
+*Die folgenden Texte wurden von einer KI übersetzt und von einer KI auf muttersprachliche Natürlichkeit geprüft; eine Prüfung durch menschliche Muttersprachler steht noch aus.*
 
 **Aktueller Stand (geprüft)**: Eine Rust-Laufzeit mit dem Ziel der Node.js-Kompatibilität: JavaScript läuft auf der Rust-Engine Boa, TypeScript über RS-TypeScript. Unterstützt console, process (inkl. exit), require (path, synchrones/asynchrones fs, fs/promises, events, util, os, buffer, Präfix node:), setTimeout / setInterval / setImmediate / queueMicrotask / nextTick sowie Buffer. Die Vergleichstests liefern dieselbe Ausgabe wie echtes Node (v26.5.0).
 
@@ -269,7 +269,7 @@ Apache-2.0 OR MIT
 Regeln: „Fertig“ erst nach Prüfung auf einem echten System; Nicht-Unterstütztes nie stillschweigend weglassen, sondern klar kennzeichnen; keine Geheimnisse ablegen; keine neue REST-API (nur Connect).
 
 ### Français — État et plan (2026-11-20)
-*Les textes suivants sont des traductions automatiques, pas encore relues par des locuteurs natifs.*
+*Les textes suivants ont été traduits par une IA et relus par une IA pour leur naturel ; ils n'ont pas encore été relus par des locuteurs natifs humains.*
 
 **État actuel (vérifié)**: Un environnement d'exécution Rust visant la compatibilité Node.js : JavaScript tourne sur le moteur Rust Boa, TypeScript via RS-TypeScript. Prend en charge console, process (dont exit), require (path, fs synchrone/asynchrone, fs/promises, events, util, os, buffer, préfixe node:), setTimeout / setInterval / setImmediate / queueMicrotask / nextTick et Buffer. Les tests de comparaison donnent la même sortie que le vrai Node (v26.5.0).
 
@@ -278,7 +278,7 @@ Regeln: „Fertig“ erst nach Prüfung auf einem echten System; Nicht-Unterstü
 Règles : n'écrire « terminé » qu'après vérification sur un système réel ; ne jamais abandonner en silence ce qui n'est pas pris en charge, mais le signaler clairement ; aucun secret ; pas de nouvelle API REST (Connect uniquement).
 
 ### Español — Estado y plan (2026-11-20)
-*Los textos siguientes son traducciones de IA, aún sin revisión de hablantes nativos.*
+*Los textos siguientes fueron traducidos por una IA y revisados por una IA en cuanto a naturalidad; aún no los ha revisado un hablante nativo humano.*
 
 **Estado actual (verificado)**: Un entorno de ejecución en Rust que busca compatibilidad con Node.js: JavaScript se ejecuta en el motor Rust Boa y TypeScript mediante RS-TypeScript. Admite console, process (con exit), require (path, fs síncrono/asíncrono, fs/promises, events, util, os, buffer, prefijo node:), setTimeout / setInterval / setImmediate / queueMicrotask / nextTick y Buffer. Las pruebas de comparación dan la misma salida que Node real (v26.5.0).
 
@@ -287,7 +287,7 @@ Règles : n'écrire « terminé » qu'après vérification sur un système réel
 Reglas: decir «terminado» solo tras comprobarlo en un sistema real; nunca descartar en silencio lo no admitido, sino señalarlo claramente; sin secretos; sin nuevas API REST (solo Connect).
 
 ### Português (BR) — Estado e plano (2026-11-20)
-*Os textos a seguir são traduções de IA, ainda não revisadas por falantes nativos.*
+*Os textos a seguir foram traduzidos por uma IA e revisados por uma IA quanto à naturalidade; ainda não foram revisados por falantes nativos humanos.*
 
 **Estado atual (verificado)**: Um ambiente de execução em Rust que busca compatibilidade com o Node.js: o JavaScript roda no motor Rust Boa e o TypeScript via RS-TypeScript. Suporta console, process (com exit), require (path, fs síncrono/assíncrono, fs/promises, events, util, os, buffer, prefixo node:), setTimeout / setInterval / setImmediate / queueMicrotask / nextTick e Buffer. Os testes de comparação dão a mesma saída que o Node real (v26.5.0).
 
@@ -296,7 +296,7 @@ Reglas: decir «terminado» solo tras comprobarlo en un sistema real; nunca desc
 Regras: só dizer «concluído» depois de verificar em um sistema real; nunca descartar em silêncio o que não é suportado, mas sinalizar claramente; sem segredos; sem novas APIs REST (somente Connect).
 
 ### Русский — Состояние и план (2026-11-20)
-*Следующие тексты переведены ИИ и ещё не проверены носителями языка.*
+*Следующие тексты переведены ИИ и проверены ИИ на естественность звучания; носители языка — люди — их пока не проверяли.*
 
 **Текущее состояние (проверено)**: Среда выполнения на Rust, нацеленная на совместимость с Node.js: JavaScript работает на Rust-движке Boa, TypeScript — через RS-TypeScript. Поддерживает console, process (включая exit), require (path, синхронный/асинхронный fs, fs/promises, events, util, os, buffer, префикс node:), setTimeout / setInterval / setImmediate / queueMicrotask / nextTick и Buffer. Сравнительные тесты дают тот же вывод, что и настоящий Node (v26.5.0).
 
