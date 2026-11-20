@@ -37,7 +37,7 @@ pub const PRELUDE: &str = r#"
   };
   path.posix = path;
   var fs = {
-    readFileSync: function (p) { return __readFile(String(p)); },
+    readFileSync: function (p, o) { var s = __readFile(String(p)); var e = typeof o === 'string' ? o : (o && o.encoding); return e ? s : Buffer.from(s); },
     writeFileSync: function (p, d) { __writeFile(String(p), String(d)); },
     existsSync: function (p) { return __exists(String(p)); }
   };
@@ -47,11 +47,11 @@ pub const PRELUDE: &str = r#"
       setImmediate(function () { var r, e = null; try { r = f.apply(null, a); } catch (x) { e = x; } cb(e, r); });
     };
   }
-  fs.readFile = cbify(function (p) { return fs.readFileSync(p); });
+  fs.readFile = cbify(function (p, o) { return fs.readFileSync(p, o); });
   fs.writeFile = cbify(function (p, d) { fs.writeFileSync(p, d); });
   fs.exists = function (p, cb) { setImmediate(function () { cb(fs.existsSync(p)); }); };
   fs.promises = {
-    readFile: function (p) { return new Promise(function (res, rej) { fs.readFile(p, function (e, v) { if (e) rej(e); else res(v); }); }); },
+    readFile: function (p, o) { return new Promise(function (res, rej) { fs.readFile(p, o, function (e, v) { if (e) rej(e); else res(v); }); }); },
     writeFile: function (p, d) { return new Promise(function (res, rej) { fs.writeFile(p, d, function (e) { if (e) rej(e); else res(); }); }); }
   };
   var os = { EOL: String.fromCharCode(10), platform: function () { return 'linux'; }, tmpdir: function () { return '/tmp'; }, homedir: function () { return __env('HOME') || '/'; } };
@@ -59,7 +59,7 @@ pub const PRELUDE: &str = r#"
   function load(file) {
     if (cache[file]) return cache[file].exports;
     var m = { exports: {} }; cache[file] = m;
-    var src = fs.readFileSync(file);
+    var src = __readFile(file);
     if (/\.json$/.test(file)) { m.exports = JSON.parse(src); return m.exports; }
     new Function('module', 'exports', 'require', '__dirname', '__filename', src)(m, m.exports, makeRequire(path.dirname(file)), path.dirname(file), file);
     return m.exports;
