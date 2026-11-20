@@ -41,6 +41,20 @@ pub const PRELUDE: &str = r#"
     writeFileSync: function (p, d) { __writeFile(String(p), String(d)); },
     existsSync: function (p) { return __exists(String(p)); }
   };
+  function cbify(f) {
+    return function () {
+      var a = Array.prototype.slice.call(arguments), cb = a.pop();
+      setImmediate(function () { var r, e = null; try { r = f.apply(null, a); } catch (x) { e = x; } cb(e, r); });
+    };
+  }
+  fs.readFile = cbify(function (p) { return fs.readFileSync(p); });
+  fs.writeFile = cbify(function (p, d) { fs.writeFileSync(p, d); });
+  fs.exists = function (p, cb) { setImmediate(function () { cb(fs.existsSync(p)); }); };
+  fs.promises = {
+    readFile: function (p) { return new Promise(function (res, rej) { fs.readFile(p, function (e, v) { if (e) rej(e); else res(v); }); }); },
+    writeFile: function (p, d) { return new Promise(function (res, rej) { fs.writeFile(p, d, function (e) { if (e) rej(e); else res(); }); }); }
+  };
+  var os = { EOL: String.fromCharCode(10), platform: function () { return 'linux'; }, tmpdir: function () { return '/tmp'; }, homedir: function () { return __env('HOME') || '/'; } };
   var cache = {};
   function load(file) {
     if (cache[file]) return cache[file].exports;
@@ -50,6 +64,69 @@ pub const PRELUDE: &str = r#"
     new Function('module', 'exports', 'require', '__dirname', '__filename', src)(m, m.exports, makeRequire(path.dirname(file)), path.dirname(file), file);
     return m.exports;
   }
+  function utf8enc(str) {
+    var o = [];
+    for (var i = 0; i < str.length; i++) {
+      var c = str.charCodeAt(i);
+      if (c >= 0xd800 && c < 0xdc00 && i + 1 < str.length) { c = 0x10000 + ((c - 0xd800) << 10) + (str.charCodeAt(++i) - 0xdc00); }
+      if (c < 0x80) o.push(c);
+      else if (c < 0x800) o.push(0xc0 | (c >> 6), 0x80 | (c & 63));
+      else if (c < 0x10000) o.push(0xe0 | (c >> 12), 0x80 | ((c >> 6) & 63), 0x80 | (c & 63));
+      else o.push(0xf0 | (c >> 18), 0x80 | ((c >> 12) & 63), 0x80 | ((c >> 6) & 63), 0x80 | (c & 63));
+    }
+    return o;
+  }
+  function utf8dec(b) {
+    var s = '', i = 0;
+    while (i < b.length) {
+      var c = b[i++];
+      if (c >= 0xf0) { c = ((c & 7) << 18) | ((b[i++] & 63) << 12) | ((b[i++] & 63) << 6) | (b[i++] & 63); c -= 0x10000; s += String.fromCharCode(0xd800 + (c >> 10), 0xdc00 + (c & 1023)); continue; }
+      if (c >= 0xe0) c = ((c & 15) << 12) | ((b[i++] & 63) << 6) | (b[i++] & 63);
+      else if (c >= 0xc0) c = ((c & 31) << 6) | (b[i++] & 63);
+      s += String.fromCharCode(c);
+    }
+    return s;
+  }
+  var B64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+  function mkbuf(arr) { var u = new Uint8Array(arr); Object.setPrototypeOf(u, Buffer.prototype); return u; }
+  function Buffer() { throw new TypeError('Use Buffer.from() or Buffer.alloc()'); }
+  Buffer.prototype = Object.create(Uint8Array.prototype, { constructor: { value: Buffer } });
+  Buffer.from = function (v, enc) {
+    if (typeof v === 'string') {
+      enc = enc || 'utf8';
+      if (enc === 'hex') { var h = []; for (var i = 0; i + 1 < v.length; i += 2) h.push(parseInt(v.slice(i, i + 2), 16)); return mkbuf(h); }
+      if (enc === 'base64') {
+        var bits = 0, n = 0, o = [], t = v.replace(/=+$/, '');
+        for (var j = 0; j < t.length; j++) { var k = B64.indexOf(t.charAt(j)); if (k < 0) continue; bits = (bits << 6) | k; n += 6; if (n >= 8) { n -= 8; o.push((bits >> n) & 255); } }
+        return mkbuf(o);
+      }
+      return mkbuf(utf8enc(v));
+    }
+    return mkbuf(Array.prototype.slice.call(v));
+  };
+  Buffer.alloc = function (n, fill) { var b = mkbuf(n); if (fill !== undefined) b.fill(typeof fill === 'string' ? fill.charCodeAt(0) : fill); return b; };
+  Buffer.isBuffer = function (x) { return x instanceof Buffer; };
+  Buffer.byteLength = function (s) { return typeof s === 'string' ? utf8enc(s).length : s.length; };
+  Buffer.concat = function (l) { var o = []; l.forEach(function (b) { for (var i = 0; i < b.length; i++) o.push(b[i]); }); return mkbuf(o); };
+  Buffer.prototype.toString = function (enc) {
+    enc = enc || 'utf8';
+    if (enc === 'hex') { var h = ''; for (var i = 0; i < this.length; i++) h += (this[i] < 16 ? '0' : '') + this[i].toString(16); return h; }
+    if (enc === 'base64') {
+      var r = '', i2 = 0;
+      for (; i2 + 2 < this.length; i2 += 3) { var x = (this[i2] << 16) | (this[i2 + 1] << 8) | this[i2 + 2]; r += B64.charAt(x >> 18) + B64.charAt((x >> 12) & 63) + B64.charAt((x >> 6) & 63) + B64.charAt(x & 63); }
+      var rem = this.length - i2;
+      if (rem === 1) { var y = this[i2] << 16; r += B64.charAt(y >> 18) + B64.charAt((y >> 12) & 63) + '=='; }
+      else if (rem === 2) { var z = (this[i2] << 16) | (this[i2 + 1] << 8); r += B64.charAt(z >> 18) + B64.charAt((z >> 12) & 63) + B64.charAt((z >> 6) & 63) + '='; }
+      return r;
+    }
+    return utf8dec(this);
+  };
+  Buffer.prototype.toJSON = function () { return { type: 'Buffer', data: Array.prototype.slice.call(this) }; };
+  Buffer.prototype.equals = function (o) { if (this.length !== o.length) return false; for (var i = 0; i < this.length; i++) if (this[i] !== o[i]) return false; return true; };
+  Buffer.prototype.slice = Buffer.prototype.subarray = function (a, b) { return mkbuf(Array.prototype.slice.call(this, a, b)); };
+  Buffer.prototype.readUInt8 = function (i) { return this[i]; };
+  Buffer.prototype.writeUInt8 = function (v, i) { this[i] = v; return i + 1; };
+  g.Buffer = Buffer;
   function EventEmitter() { this._events = {}; }
   EventEmitter.prototype._l = function (n) { if (!this._events) this._events = {}; return this._events[n] || (this._events[n] = []); };
   EventEmitter.prototype.on = EventEmitter.prototype.addListener = function (n, f) { this._l(n).push({ f: f, once: false }); return this; };
@@ -90,6 +167,9 @@ pub const PRELUDE: &str = r#"
       if (name === 'path') return path;
       if (name === 'fs') return fs;
       if (name === 'events') return events;
+      if (name === 'os') return os;
+      if (name === 'fs/promises') return fs.promises;
+      if (name === 'buffer') return { Buffer: Buffer };
       if (name === 'util') return util;
       var base = path.resolve(dir, name), c = [base, base + '.js', base + '.json', base + '/index.js'];
       for (var i = 0; i < c.length; i++) if (fs.existsSync(c[i])) return load(c[i]);
