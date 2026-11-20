@@ -59,6 +59,29 @@ pub const PRELUDE: &str = r#"
       throw new Error("Cannot find module '" + name + "'");
     };
   }
+  var timers = [], tseq = 0, tnow = 0;
+  function addTimer(fn, ms, args, rep) {
+    var t = { id: ++tseq, seq: tseq, due: tnow + ms, fn: fn, args: args, rep: rep };
+    timers.push(t);
+    return { _id: t.id, ref: function () { return this; }, unref: function () { return this; }, hasRef: function () { return true; } };
+  }
+  g.setTimeout = function (fn, ms) { return addTimer(fn, Math.max(1, +ms || 0), Array.prototype.slice.call(arguments, 2), null); };
+  g.setInterval = function (fn, ms) { ms = Math.max(1, +ms || 0); return addTimer(fn, ms, Array.prototype.slice.call(arguments, 2), ms); };
+  g.setImmediate = function (fn) { return addTimer(fn, 0, Array.prototype.slice.call(arguments, 1), null); };
+  g.clearTimeout = g.clearInterval = g.clearImmediate = function (h) {
+    var id = h && h._id; timers = timers.filter(function (t) { return t.id !== id; });
+  };
+  g.queueMicrotask = function (fn) { Promise.resolve().then(fn); };
+  g.process.nextTick = function (fn) { var a = Array.prototype.slice.call(arguments, 1); Promise.resolve().then(function () { fn.apply(null, a); }); };
+  g.__runTimers = function () {
+    if (!timers.length) return false;
+    timers.sort(function (a, b) { return a.due - b.due || a.seq - b.seq; });
+    var t = timers.shift();
+    if (t.due > tnow) { __sleep(t.due - tnow); tnow = t.due; }
+    if (t.rep !== null) { t.due = tnow + t.rep; t.seq = ++tseq; timers.push(t); }
+    t.fn.apply(null, t.args);
+    return true;
+  };
   g.require = makeRequire(__cwd());
   g.__run = function () {
     var file = path.resolve(__entry_file()), dir = path.dirname(file), m = { exports: {} };
@@ -132,6 +155,11 @@ mod boa_backend {
             }))?;
             reg(&mut ctx, js_string!("__entry"), NativeFunction::from_fn_ptr(|_, _, _| Ok(JsValue::from(boa_engine::JsString::from(super::ENTRY.with(|e| e.borrow().1.clone()).as_str())))))?;
             reg(&mut ctx, js_string!("__entry_file"), NativeFunction::from_fn_ptr(|_, _, _| Ok(JsValue::from(boa_engine::JsString::from(super::ENTRY.with(|e| e.borrow().0.clone()).as_str())))))?;
+            reg(&mut ctx, js_string!("__sleep"), NativeFunction::from_fn_ptr(|_, a, c| {
+                let ms = a.first().cloned().unwrap_or(JsValue::undefined()).to_number(c)?;
+                std::thread::sleep(std::time::Duration::from_millis(ms.max(0.0) as u64));
+                Ok(JsValue::undefined())
+            }))?;
             reg(&mut ctx, js_string!("__exists"), NativeFunction::from_fn_ptr(|_, a, c| Ok(JsValue::from(std::path::Path::new(&arg_str(a, 0, c)?).exists()))))?;
             reg(&mut ctx, js_string!("__cwd"), NativeFunction::from_fn_ptr(|_, _, _| {
                 let d = std::env::current_dir().map(|p| p.to_string_lossy().replace('\\', "/")).unwrap_or_else(|_| "/".into());
@@ -155,6 +183,14 @@ mod boa_backend {
         fn eval(&mut self, source: &str) -> Result<String, String> {
             let v = self.ctx.eval(Source::from_bytes(source.as_bytes())).map_err(|e| e.to_string())?;
             let _ = self.ctx.run_jobs();
+            // タイマー: 満期順に 1 つずつ実行し、そのたびに Promise のジョブを流す(Node のイベントループ相当)
+            loop {
+                let more = self.ctx.eval(Source::from_bytes(b"__runTimers()")).map_err(|e| e.to_string())?;
+                let _ = self.ctx.run_jobs();
+                if !more.to_boolean() {
+                    break;
+                }
+            }
             v.to_string(&mut self.ctx).map(|s| s.to_std_string_escaped()).map_err(|e| e.to_string())
         }
     }
