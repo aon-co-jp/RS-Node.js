@@ -50,10 +50,47 @@ pub const PRELUDE: &str = r#"
     new Function('module', 'exports', 'require', '__dirname', '__filename', src)(m, m.exports, makeRequire(path.dirname(file)), path.dirname(file), file);
     return m.exports;
   }
+  function EventEmitter() { this._events = {}; }
+  EventEmitter.prototype._l = function (n) { if (!this._events) this._events = {}; return this._events[n] || (this._events[n] = []); };
+  EventEmitter.prototype.on = EventEmitter.prototype.addListener = function (n, f) { this._l(n).push({ f: f, once: false }); return this; };
+  EventEmitter.prototype.prependListener = function (n, f) { this._l(n).unshift({ f: f, once: false }); return this; };
+  EventEmitter.prototype.once = function (n, f) { this._l(n).push({ f: f, once: true }); return this; };
+  EventEmitter.prototype.off = EventEmitter.prototype.removeListener = function (n, f) {
+    var a = this._l(n); for (var i = 0; i < a.length; i++) if (a[i].f === f) { a.splice(i, 1); break; } return this;
+  };
+  EventEmitter.prototype.removeAllListeners = function (n) { if (n === undefined) this._events = {}; else delete this._events[n]; return this; };
+  EventEmitter.prototype.listenerCount = function (n) { return this._l(n).length; };
+  EventEmitter.prototype.emit = function (n) {
+    var a = this._l(n).slice(), args = Array.prototype.slice.call(arguments, 1);
+    if (!a.length) { if (n === 'error') throw (args[0] instanceof Error ? args[0] : new Error('Unhandled error.')); return false; }
+    for (var i = 0; i < a.length; i++) { if (a[i].once) this.removeListener(n, a[i].f); a[i].f.apply(this, args); }
+    return true;
+  };
+  EventEmitter.EventEmitter = EventEmitter;
+  var events = EventEmitter;
+  var util = {
+    format: function (f) {
+      var args = Array.prototype.slice.call(arguments, 1), i = 0;
+      if (typeof f !== 'string') return [f].concat(args).map(function (x) { return typeof x === 'string' ? x : JSON.stringify(x); }).join(' ');
+      var r = f.replace(/%[sdifjo%]/g, function (m) {
+        if (m === '%%') return '%'; if (i >= args.length) return m; var v = args[i++];
+        if (m === '%s') return String(v); if (m === '%d') return String(Number(v)); if (m === '%i') return String(parseInt(v, 10));
+        if (m === '%f') return String(parseFloat(v)); return JSON.stringify(v);
+      });
+      for (; i < args.length; i++) r += ' ' + (typeof args[i] === 'string' ? args[i] : JSON.stringify(args[i]));
+      return r;
+    },
+    promisify: function (fn) { return function () { var a = Array.prototype.slice.call(arguments), self = this; return new Promise(function (res, rej) { a.push(function (e, v) { if (e) rej(e); else res(v); }); fn.apply(self, a); }); }; },
+    inherits: function (c, s) { c.super_ = s; Object.setPrototypeOf(c.prototype, s.prototype); },
+    isDeepStrictEqual: function (a, b) { return JSON.stringify(a) === JSON.stringify(b); }
+  };
   function makeRequire(dir) {
     return function (name) {
+      if (name.slice(0, 5) === 'node:') name = name.slice(5);
       if (name === 'path') return path;
       if (name === 'fs') return fs;
+      if (name === 'events') return events;
+      if (name === 'util') return util;
       var base = path.resolve(dir, name), c = [base, base + '.js', base + '.json', base + '/index.js'];
       for (var i = 0; i < c.length; i++) if (fs.existsSync(c[i])) return load(c[i]);
       throw new Error("Cannot find module '" + name + "'");
