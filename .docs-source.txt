@@ -1,3 +1,3 @@
 source: aon-co-jp/RS-Node.js
-commit: 2a8a19e54c59f87ef272e9192e310e1acffc4342
-updated: 2026-11-20T11:05:19Z
+commit: fb18873c648cc6b48b3f59ed9664cab6aed0c54a
+updated: 2026-11-20T14:12:00Z
