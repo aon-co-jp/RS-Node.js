@@ -57,7 +57,7 @@
 ### 한국어 — 현황과 계획 (2026-11-20)
 *아래는 AI가 번역하고 AI가 원어민 수준으로 검수한 것이며, 사람 원어민의 검수는 아직 받지 않았습니다.*
 
-**현황(검증 완료)**: Node.js 호환을 목표로 하는 Rust 런타임입니다. JavaScript는 Rust 엔진 Boa로, TypeScript는 RS-TypeScript로 실행합니다. console, process(exit 포함), require(path, 동기/비동기 fs, fs/promises, events, util, os, buffer, node: 접두사), setTimeout / setInterval / setImmediate / queueMicrotask / nextTick, Buffer를 지원합니다. 비교 시험의 출력이 실제 Node(v26.5.0)와 같습니다.
+**현황(검증 완료)**: Node.js 호환을 목표로 하는 Rust 런타임입니다. JavaScript는 Rust 엔진 Boa로, TypeScript는 RS-TypeScript로 실행합니다. console, process(exit 포함), require(path, 동기/비동기 fs, fs/promises, events, util, os, buffer, node: 접두사), setTimeout / setInterval / setImmediate / queueMicrotask / nextTick, Buffer를 지원합니다. 비교 테스트의 출력이 실제 Node(v26.5.0)와 같습니다.
 
 **계획(미완료, 이 순서대로 자동 진행)**: util.inspect와 console.log의 출력 형식, node_modules 해석, ESM, stream과 http, 자체 엔진 RS-JavaScript로의 교체.
 
