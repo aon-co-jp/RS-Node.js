@@ -21,7 +21,18 @@ rpoem-adapter = []
 # 分離しているのは将来tokio固有の統合が必要になった場合の拡張余地を
 # 残すため。
 tokio-driver = []
+# JavaScript 実行(Rust 製エンジン Boa)。`rnodejs` コマンドに必要。
+boa = ["dep:boa_engine"]
+# TypeScript 実行(RS-TypeScript で型注釈を取り除く)
+ts = ["dep:rs-typescript"]
+
+[[bin]]
+name = "rnodejs"
+path = "src/main.rs"
+required-features = ["boa"]
 
 [dependencies]
+boa_engine = { version = "0.21", optional = true }
+rs-typescript = { git = "https://github.com/aon-co-jp/RS-TypeScript", optional = true }
 
 [dev-dependencies]
