@@ -32,7 +32,7 @@ path = "src/main.rs"
 required-features = ["boa"]
 
 [dependencies]
-boa_engine = { version = "0.21", optional = true }
+boa_engine = { version = "0.22", optional = true }
 rs-typescript = { git = "https://github.com/aon-co-jp/RS-TypeScript", optional = true }
 
 [dev-dependencies]

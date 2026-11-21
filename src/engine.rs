@@ -12,11 +12,16 @@ pub trait JsEngine {
     fn eval(&mut self, source: &str) -> Result<String, String>;
 }
 
+/// util.inspect / util.format の整形(src/inspect.js)。PRELUDE より先に評価する
+pub const INSPECT_JS: &str = include_str!("inspect.js");
+
+/// ES モジュール(import / export)を CommonJS へ書き換える変換(src/esm.js)。PRELUDE より先に評価する
+pub const ESM_JS: &str = include_str!("esm.js");
+
 /// Node.js 風の土台(JS)。ネイティブ関数 `__print` `__readFile` `__writeFile` `__exists` `__cwd` `__env` を使う。
 pub const PRELUDE: &str = r#"
 (function (g) {
-  var fmt = function (a) { return typeof a === 'string' ? a : (a && typeof a === 'object' ? JSON.stringify(a) : String(a)); };
-  g.console = { log: function () { __print(Array.prototype.map.call(arguments, fmt).join(' ')); } };
+  g.console = { log: function () { __print(g.__format.apply(null, arguments)); } };
   g.console.error = g.console.warn = g.console.info = g.console.log;
   g.process = { argv: __argv(), env: new Proxy({}, { get: function (_, k) { return __env(String(k)); } }), cwd: function () { return __cwd(); }, exit: function (c) { __exit(c === undefined ? (g.process.exitCode | 0) : (c | 0)); }, platform: 'rnodejs' };
   var path = {
@@ -60,6 +65,7 @@ pub const PRELUDE: &str = r#"
     if (cache[file]) return cache[file].exports;
     var m = { exports: {} }; cache[file] = m;
     var src = __readFile(file);
+    if (/\.mjs$/.test(file) || (!/\.json$/.test(file) && g.__isEsm(src))) src = g.__esm(src);
     if (/\.json$/.test(file)) { m.exports = JSON.parse(src); return m.exports; }
     new Function('module', 'exports', 'require', '__dirname', '__filename', src)(m, m.exports, makeRequire(path.dirname(file)), path.dirname(file), file);
     return m.exports;
@@ -146,17 +152,8 @@ pub const PRELUDE: &str = r#"
   EventEmitter.EventEmitter = EventEmitter;
   var events = EventEmitter;
   var util = {
-    format: function (f) {
-      var args = Array.prototype.slice.call(arguments, 1), i = 0;
-      if (typeof f !== 'string') return [f].concat(args).map(function (x) { return typeof x === 'string' ? x : JSON.stringify(x); }).join(' ');
-      var r = f.replace(/%[sdifjo%]/g, function (m) {
-        if (m === '%%') return '%'; if (i >= args.length) return m; var v = args[i++];
-        if (m === '%s') return String(v); if (m === '%d') return String(Number(v)); if (m === '%i') return String(parseInt(v, 10));
-        if (m === '%f') return String(parseFloat(v)); return JSON.stringify(v);
-      });
-      for (; i < args.length; i++) r += ' ' + (typeof args[i] === 'string' ? args[i] : JSON.stringify(args[i]));
-      return r;
-    },
+    format: g.__format,
+    inspect: g.__inspect,
     promisify: function (fn) { return function () { var a = Array.prototype.slice.call(arguments), self = this; return new Promise(function (res, rej) { a.push(function (e, v) { if (e) rej(e); else res(v); }); fn.apply(self, a); }); }; },
     inherits: function (c, s) { c.super_ = s; Object.setPrototypeOf(c.prototype, s.prototype); },
     isDeepStrictEqual: function (a, b) { return JSON.stringify(a) === JSON.stringify(b); }
@@ -171,7 +168,7 @@ pub const PRELUDE: &str = r#"
       if (name === 'fs/promises') return fs.promises;
       if (name === 'buffer') return { Buffer: Buffer };
       if (name === 'util') return util;
-      var base = path.resolve(dir, name), c = [base, base + '.js', base + '.json', base + '/index.js'];
+      var base = path.resolve(dir, name), c = [base, base + '.js', base + '.mjs', base + '.json', base + '/index.js'];
       for (var i = 0; i < c.length; i++) if (fs.existsSync(c[i])) return load(c[i]);
       throw new Error("Cannot find module '" + name + "'");
     };
@@ -203,7 +200,8 @@ pub const PRELUDE: &str = r#"
   g.__run = function () {
     var file = path.resolve(__entry_file()), dir = path.dirname(file), m = { exports: {} };
     cache[file] = m;
-    new Function('module', 'exports', 'require', '__dirname', '__filename', __entry())(m, m.exports, makeRequire(dir), dir, file);
+    var esrc = __entry(); if (/\.mjs$/.test(file) || g.__isEsm(esrc)) esrc = g.__esm(esrc);
+    new Function('module', 'exports', 'require', '__dirname', '__filename', esrc)(m, m.exports, makeRequire(dir), dir, file);
   };
   g.__rnodejs_load = load;
 })(this);
@@ -234,7 +232,7 @@ pub use boa_backend::BoaEngine;
 
 #[cfg(feature = "boa")]
 mod boa_backend {
-    use super::{JsEngine, PRELUDE};
+    use super::{JsEngine, ESM_JS, INSPECT_JS, PRELUDE};
     use boa_engine::{js_string, Context, JsError, JsResult, JsValue, NativeFunction, Source};
 
     fn arg_str(args: &[JsValue], i: usize, ctx: &mut Context) -> JsResult<String> {
@@ -297,6 +295,8 @@ mod boa_backend {
             let argv_json = format!("[{}]", argv.iter().map(|s| format!("{s:?}")).collect::<Vec<_>>().join(","));
             let argv_src = format!("globalThis.__argv = function () {{ return {argv_json}; }};");
             ctx.eval(Source::from_bytes(argv_src.as_bytes())).map_err(|e| e.to_string())?;
+            ctx.eval(Source::from_bytes(INSPECT_JS.as_bytes())).map_err(|e| e.to_string())?;
+            ctx.eval(Source::from_bytes(ESM_JS.as_bytes())).map_err(|e| e.to_string())?;
             ctx.eval(Source::from_bytes(PRELUDE.as_bytes())).map_err(|e| e.to_string())?;
             Ok(BoaEngine { ctx })
         }
