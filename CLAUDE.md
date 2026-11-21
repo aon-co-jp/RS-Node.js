@@ -127,3 +127,77 @@ Regras: só dizer «concluído» depois de verificar em um sistema real; nunca d
 اصول: فقط پس از بررسی روی یک سامانهٔ واقعی می‌نویسیم «انجام شد»؛ آنچه پشتیبانی نمی‌شود هرگز بی‌صدا حذف نمی‌شود و آشکارا علامت می‌خورد؛ رازی (مانند گذرواژه و کلید) نمی‌نویسیم؛ REST جدید نمی‌سازیم (فقط Connect).
 
 </div>
+
+## 2026-11-21 更新(util.inspect と ESM) / 2026-11-21 update: util.inspect and ES modules (10 more languages; AI翻訳+AI確認、人間のネイティブ確認はまだ)
+
+**日本語**: `console.log`・`util.inspect`・`util.format` の出力を本物の Node.js と一致させ、ES モジュール(`import` / `export`、`.mjs`)を CommonJS への書き換えで対応した。Boa を 0.22 へ更新。未対応: トップレベル `await`・`import.meta`・動的 `import()`・ライブバインディング。
+
+**English**: `console.log`, `util.inspect` and `util.format` now match real Node.js output, and ES modules (`import` / `export`, `.mjs`) work through a CommonJS rewrite. Boa was updated to 0.22. Not supported yet: top-level `await`, `import.meta`, dynamic `import()`, live bindings.
+
+### 简体中文 — 更新 (2026-11-21)
+
+*以下为 AI 翻译,并已由 AI 按母语水平审校;尚未经人类母语者校对。*
+
+`console.log` 与 `util.inspect` / `util.format` 现在的输出与真正的 Node.js 完全一致(嵌套对象、数组折行、`Map`/`Set`、类、循环引用、`%s %d %o` 等,已逐字节比较)。同时支持 ES 模块:`import`(默认、命名、`* as`、仅副作用)和 `export`(`export const`、`export default`、`export { a as b }`、`export * from`)会被改写成 CommonJS,也可 `require` `.mjs` 文件。JS 引擎 Boa 升级到 0.22(修复了类声明导致的崩溃)。尚未支持:顶层 `await`、`import.meta`、动态 `import()`、实时绑定。
+
+### 繁體中文(台灣) — 更新 (2026-11-21)
+
+*以下為 AI 翻譯,並已由 AI 以母語水準審校;尚未經人類母語者校對。*
+
+`console.log` 與 `util.inspect` / `util.format` 現在的輸出與真正的 Node.js 完全一致(巢狀物件、陣列換行、`Map`/`Set`、類別、循環參照、`%s %d %o` 等,已逐位元組比較)。同時支援 ES 模組:`import`(預設、具名、`* as`、僅副作用)與 `export`(`export const`、`export default`、`export { a as b }`、`export * from`)會被改寫成 CommonJS,也可 `require` `.mjs` 檔案。JS 引擎 Boa 升級到 0.22(修正了類別宣告造成的當機)。尚未支援:頂層 `await`、`import.meta`、動態 `import()`、即時繫結。
+
+### 한국어 — 업데이트 (2026-11-21)
+
+*아래는 AI가 번역하고 AI가 원어민 수준으로 검수한 것이며, 사람 원어민의 검수는 아직 받지 않았습니다.*
+
+`console.log`와 `util.inspect` / `util.format`의 출력이 이제 진짜 Node.js와 완전히 같습니다(중첩 객체, 배열 줄바꿈, `Map`/`Set`, 클래스, 순환 참조, `%s %d %o` 등을 바이트 단위로 비교했습니다). ES 모듈도 지원합니다: `import`(기본, 이름 있는, `* as`, 부수 효과만)와 `export`(`export const`, `export default`, `export { a as b }`, `export * from`)를 CommonJS로 바꿔 실행하며, `.mjs` 파일도 `require`할 수 있습니다. JS 엔진 Boa를 0.22로 올려 클래스 선언 때 죽던 문제를 고쳤습니다. 아직 안 되는 것: 최상위 `await`, `import.meta`, 동적 `import()`, 라이브 바인딩.
+
+### Deutsch — Aktualisierung (2026-11-21)
+
+*Die folgenden Texte wurden von einer KI übersetzt und von einer KI auf muttersprachliche Natürlichkeit geprüft; eine Prüfung durch menschliche Muttersprachler steht noch aus.*
+
+Die Ausgabe von `console.log` sowie `util.inspect` / `util.format` ist jetzt identisch mit dem echten Node.js (verschachtelte Objekte, Zeilenumbruch bei Arrays, `Map`/`Set`, Klassen, Zirkelbezüge, `%s %d %o` und mehr, Byte für Byte verglichen). Außerdem werden ES-Module unterstützt: `import` (Standard, benannt, `* as`, nur Nebenwirkung) und `export` (`export const`, `export default`, `export { a as b }`, `export * from`) werden in CommonJS umgeschrieben; auch `.mjs`-Dateien lassen sich per `require` laden. Die JS-Engine Boa wurde auf 0.22 aktualisiert (behebt einen Absturz bei Klassendeklarationen). Noch nicht unterstützt: `await` auf oberster Ebene, `import.meta`, dynamisches `import()`, Live-Bindungen.
+
+### Français — Mise à jour (2026-11-21)
+
+*Les textes suivants ont été traduits par une IA et relus par une IA pour leur naturel ; ils n'ont pas encore été relus par des locuteurs natifs humains.*
+
+La sortie de `console.log` et de `util.inspect` / `util.format` est désormais identique à celle du vrai Node.js (objets imbriqués, retours à la ligne des tableaux, `Map`/`Set`, classes, références circulaires, `%s %d %o`, etc., comparée octet par octet). Les modules ES sont aussi pris en charge : `import` (par défaut, nommé, `* as`, effet de bord seul) et `export` (`export const`, `export default`, `export { a as b }`, `export * from`) sont réécrits en CommonJS, et les fichiers `.mjs` peuvent être chargés avec `require`. Le moteur JS Boa passe à la version 0.22 (corrige un plantage sur les déclarations de classe). Pas encore pris en charge : `await` au niveau supérieur, `import.meta`, `import()` dynamique, liaisons dynamiques.
+
+### Español — Actualización (2026-11-21)
+
+*Los textos siguientes fueron traducidos por una IA y revisados por una IA en cuanto a naturalidad; aún no los ha revisado un hablante nativo humano.*
+
+La salida de `console.log` y de `util.inspect` / `util.format` ahora es idéntica a la del Node.js real (objetos anidados, saltos de línea en arreglos, `Map`/`Set`, clases, referencias circulares, `%s %d %o`, etc., comparada byte a byte). También se admiten módulos ES: `import` (por defecto, con nombre, `* as`, solo efecto secundario) y `export` (`export const`, `export default`, `export { a as b }`, `export * from`) se reescriben a CommonJS, y los archivos `.mjs` se pueden cargar con `require`. El motor JS Boa sube a la versión 0.22 (corrige un fallo con las declaraciones de clase). Todavía no se admiten: `await` de nivel superior, `import.meta`, `import()` dinámico y enlaces vivos.
+
+### Português (BR) — Atualização (2026-11-21)
+
+*Os textos a seguir foram traduzidos por uma IA e revisados por uma IA quanto à naturalidade; ainda não foram revisados por falantes nativos humanos.*
+
+A saída de `console.log` e de `util.inspect` / `util.format` agora é idêntica à do Node.js real (objetos aninhados, quebra de linha em arrays, `Map`/`Set`, classes, referências circulares, `%s %d %o` etc., comparada byte a byte). Módulos ES também são aceitos: `import` (padrão, nomeado, `* as`, só efeito colateral) e `export` (`export const`, `export default`, `export { a as b }`, `export * from`) são reescritos para CommonJS, e arquivos `.mjs` podem ser carregados com `require`. O motor JS Boa foi atualizado para a versão 0.22 (corrige uma falha em declarações de classe). Ainda não há suporte para: `await` no nível superior, `import.meta`, `import()` dinâmico e vínculos dinâmicos.
+
+### Русский — Обновление (2026-11-21)
+
+*Следующие тексты переведены ИИ и проверены ИИ на естественность звучания; носители языка — люди — их пока не проверяли.*
+
+Вывод `console.log` и `util.inspect` / `util.format` теперь совпадает с настоящим Node.js (вложенные объекты, переносы в массивах, `Map`/`Set`, классы, циклические ссылки, `%s %d %o` и др.; сравнение побайтовое). Также поддерживаются ES-модули: `import` (по умолчанию, именованный, `* as`, только побочный эффект) и `export` (`export const`, `export default`, `export { a as b }`, `export * from`) переписываются в CommonJS, а файлы `.mjs` можно загружать через `require`. Движок JS Boa обновлён до версии 0.22 (исправлен сбой при объявлении классов). Пока не поддерживаются: `await` на верхнем уровне, `import.meta`, динамический `import()` и «живые» привязки.
+
+### العربية — تحديث (2026-11-21)
+
+<div dir="rtl" lang="ar">
+
+*النص التالي ترجمه الذكاء الاصطناعي وراجعه الذكاء الاصطناعي من حيث سلامة اللغة، ولم يراجعه بعدُ متحدث أصلي من البشر.*
+
+أصبح ناتج `console.log` و`util.inspect` / `util.format` مطابقًا لناتج Node.js الحقيقي (الكائنات المتداخلة، التفاف المصفوفات، `Map`/`Set`، الأصناف، المراجع الدائرية، `%s %d %o` وغيرها، وقد قورن بايتًا ببايت). كما تُدعم وحدات ES: يُعاد كتابة `import` (الافتراضي، المسمّى، `* as`، الأثر الجانبي فقط) و`export` (`export const` و`export default` و`export { a as b }` و`export * from`) إلى CommonJS، ويمكن تحميل ملفات `.mjs` عبر `require`. وتمت ترقية محرك JS المسمى Boa إلى الإصدار 0.22 (إصلاح انهيار عند تعريف الأصناف). غير المدعوم بعد: `await` في المستوى الأعلى، و`import.meta`، و`import()` الديناميكي، والارتباطات الحيّة.
+
+</div>
+
+### فارسی (ایران) — به‌روزرسانی (2026-11-21)
+
+<div dir="rtl" lang="fa">
+
+*متن زیر را هوش مصنوعی ترجمه و از نظر روانی زبان بازبینی کرده است؛ هنوز هیچ فارسی‌زبانِ بومیِ انسانی آن را بررسی نکرده است.*
+
+خروجی `console.log` و `util.inspect` / `util.format` اکنون با Node.js واقعی یکسان است (شیءهای تودرتو، شکستن خط آرایه‌ها، `Map`/`Set`، کلاس‌ها، ارجاع‌های دوری، `%s %d %o` و غیره؛ بایت‌به‌بایت مقایسه شده است). ماژول‌های ES هم پشتیبانی می‌شوند: `import` (پیش‌فرض، نام‌دار، `* as`، فقط اثر جانبی) و `export` (`export const`، `export default`، `export { a as b }`، `export * from`) به CommonJS بازنویسی می‌شوند و فایل‌های `.mjs` را می‌توان با `require` بارگذاری کرد. موتور JS با نام Boa به نسخهٔ 0.22 ارتقا یافت (خرابی هنگام تعریف کلاس رفع شد). هنوز پشتیبانی نمی‌شود: `await` سطح بالا، `import.meta`، `import()` پویا و اتصال‌های زنده.
+
+</div>
