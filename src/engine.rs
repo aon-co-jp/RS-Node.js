@@ -35,7 +35,7 @@ pub const PRELUDE: &str = r#"
       return res;
     },
     join: function () { return path.normalize(Array.prototype.filter.call(arguments, Boolean).join('/')); },
-    resolve: function () { var r = ''; for (var i = arguments.length - 1; i >= 0 && r.charAt(0) !== '/'; i--) r = arguments[i] + (r ? '/' + r : ''); if (r.charAt(0) !== '/') r = __cwd() + '/' + r; return path.normalize(r); },
+    resolve: function () { var r = ''; for (var i = arguments.length - 1; i >= 0 && r.charAt(0) !== '/' && !/^[A-Za-z]:[\/]/.test(r); i--) r = arguments[i] + (r ? '/' + r : ''); if (r.charAt(0) !== '/' && !/^[A-Za-z]:[\/]/.test(r)) r = __cwd() + '/' + r; return path.normalize(r); },
     dirname: function (p) { var i = p.lastIndexOf('/'); return i < 0 ? '.' : (i === 0 ? '/' : p.slice(0, i)); },
     basename: function (p, ext) { var b = p.slice(p.lastIndexOf('/') + 1); return ext && b.slice(-ext.length) === ext ? b.slice(0, -ext.length) : b; },
     extname: function (p) { var b = path.basename(p), i = b.lastIndexOf('.'); return i <= 0 ? '' : b.slice(i); }
@@ -44,7 +44,13 @@ pub const PRELUDE: &str = r#"
   var fs = {
     readFileSync: function (p, o) { var s = __readFile(String(p)); var e = typeof o === 'string' ? o : (o && o.encoding); return e ? s : Buffer.from(s); },
     writeFileSync: function (p, d) { __writeFile(String(p), String(d)); },
-    existsSync: function (p) { return __exists(String(p)); }
+    existsSync: function (p) { return __exists(String(p)); },
+    statSync: function (p) {
+      p = String(p);
+      if (!__exists(p)) { var e = new Error("ENOENT: no such file or directory, stat '" + p + "'"); e.code = 'ENOENT'; throw e; }
+      var f = __isFile(p);
+      return { isFile: function () { return f; }, isDirectory: function () { return !f; } };
+    }
   };
   function cbify(f) {
     return function () {
@@ -168,10 +174,47 @@ pub const PRELUDE: &str = r#"
       if (name === 'fs/promises') return fs.promises;
       if (name === 'buffer') return { Buffer: Buffer };
       if (name === 'util') return util;
-      var base = path.resolve(dir, name), c = [base, base + '.js', base + '.mjs', base + '.json', base + '/index.js'];
-      for (var i = 0; i < c.length; i++) if (fs.existsSync(c[i])) return load(c[i]);
-      throw new Error("Cannot find module '" + name + "'");
+      var rel = name.charAt(0) === '.' || name.charAt(0) === '/';
+      var bases = [];
+      if (rel) bases.push(path.resolve(dir, name));
+      else {
+        var d = path.resolve(dir);
+        for (;;) {
+          if (path.basename(d) !== 'node_modules') bases.push(d === '/' ? '/node_modules/' + name : d + '/node_modules/' + name);
+          var up = path.dirname(d);
+          if (up === d) break;
+          d = up;
+        }
+      }
+      for (var b = 0; b < bases.length; b++) {
+        var hit = resolveBase(bases[b]);
+        if (hit) return load(hit);
+      }
+      var err = new Error("Cannot find module '" + name + "'");
+      err.code = 'MODULE_NOT_FOUND';
+      throw err;
     };
+  }
+  function isFile(p) { try { return fs.statSync(p).isFile(); } catch (e) { return false; } }
+  function resolveIndex(b) {
+    var x = ['/index.js', '/index.mjs', '/index.json'];
+    for (var i = 0; i < x.length; i++) if (isFile(b + x[i])) return b + x[i];
+    return null;
+  }
+  function resolveBase(base) {
+    var c = [base, base + '.js', base + '.mjs', base + '.json'];
+    for (var i = 0; i < c.length; i++) if (isFile(c[i])) return c[i];
+    if (isFile(base + '/package.json')) {
+      var main = null;
+      try { main = JSON.parse(fs.readFileSync(base + '/package.json', 'utf8')).main; } catch (e) {}
+      if (typeof main === 'string') {
+        var mb = path.resolve(base, main);
+        var h = [mb, mb + '.js', mb + '.json'];
+        for (var j = 0; j < h.length; j++) if (isFile(h[j])) return h[j];
+        var ix = resolveIndex(mb); if (ix) return ix;
+      }
+    }
+    return resolveIndex(base);
   }
   var timers = [], tseq = 0, tnow = 0;
   function addTimer(fn, ms, args, rep) {
@@ -282,6 +325,7 @@ mod boa_backend {
                 Ok(JsValue::undefined())
             }))?;
             reg(&mut ctx, js_string!("__exists"), NativeFunction::from_fn_ptr(|_, a, c| Ok(JsValue::from(std::path::Path::new(&arg_str(a, 0, c)?).exists()))))?;
+            reg(&mut ctx, js_string!("__isFile"), NativeFunction::from_fn_ptr(|_, a, c| Ok(JsValue::from(std::path::Path::new(&arg_str(a, 0, c)?).is_file()))))?;
             reg(&mut ctx, js_string!("__cwd"), NativeFunction::from_fn_ptr(|_, _, _| {
                 let d = std::env::current_dir().map(|p| p.to_string_lossy().replace('\\', "/")).unwrap_or_else(|_| "/".into());
                 Ok(JsValue::from(boa_engine::JsString::from(d.as_str())))
