@@ -1,3 +1,5 @@
+> Latest translations / 翻訳の最新版: [0-LATEST-TRANSLATIONS.md](0-LATEST-TRANSLATIONS.md)
+
 # RS-Node.js
 
 Node.js のコア概念を、既存の Node.js 実装コードを一切流用せず Rust で
